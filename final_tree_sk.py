@@ -98,84 +98,83 @@ def generate_dataset(image, n, size, bins, p=0.1):
     return X, Y
 
 # TODO
-def spiral(matrix, func, output, bins):
+def spiral(matrix, func, output, bins, sample_size):
     print(matrix.size)
     if matrix.size == 0: 
         return output
-
     for element in matrix[0, :, :]:
         x,y = element[0], element[1]
-        print(x,y)
-        y_hat = func(sample_pixels(im, x, y, sample_size).reshape(1, -1))
+        y_hat = func(sample_pixels(output, x, y, sample_size).reshape(1, -1))
         output[x, y] = bins[int(y_hat)]
-    spiral(np.rot90(matrix[1:, :, :]), func, output, bins)
+    spiral(np.rot90(matrix[1:, :, :]), func, output, bins, sample_size)
     return output
 
+def main():
+    im = get_original_data()
 
-im = get_original_data()
+    try:
+        bins = pickle.load(open("bins.p", "rb"))
+        bin_sizes = pickle.load(open("bin_sizes.p", "rb"))
+        print(bin_sizes)
+    except:
+        bins = None
+        
+    # passing random bin to each pixel
+    # for i in range(301):
+    #     for j in range(301):
+    #         im[300+i, 300+j, :] = bins[np.random.randint(0, len(bins))]
+    print(bins.shape)
+    plt.imshow(bins.reshape(1, -1, 3))
+    plt.show()
 
-try:
-    bins = pickle.load(open("bins.p", "rb"))
-    bin_sizes = pickle.load(open("bin_sizes.p", "rb"))
-    print(bin_sizes)
-except:
-    bins = None
-    
-# passing random bin to each pixel
-# for i in range(301):
-#     for j in range(301):
-#         im[300+i, 300+j, :] = bins[np.random.randint(0, len(bins))]
-print(bins.shape)
-plt.imshow(bins.reshape(1, -1, 3))
-plt.show()
+    clf = RandomForestClassifier(n_estimators=100, random_state=22, n_jobs=4, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
+    sample_size = 4
+    X, Y = generate_dataset(im, sample_size, 4000, bins, p=0.15)
 
-clf = RandomForestClassifier(n_estimators=100, random_state=22, n_jobs=1, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
-sample_size = 4
-X, Y = generate_dataset(im, sample_size, 4000, bins, p=0.15)
+    dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
 
-dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
-
-np.savetxt("dataset.csv", dataset, delimiter=",")
-
-
-print(X.shape, Y.shape)
-clf.fit(X.reshape(-1, sample_size*3), Y)
+    np.savetxt("dataset.csv", dataset, delimiter=",")
 
 
-im = cv2.imread("Leaves_Masked.jpg")
-im = np.flip(im, axis=-1)
+    print(X.shape, Y.shape)
+    clf.fit(X.reshape(-1, sample_size*3), Y)
+
+
+    im = cv2.imread("Leaves_Masked.jpg")
+    im = np.flip(im, axis=-1)
 
 
 
-x_cords, y_cords = np.meshgrid(np.arange(start=300, stop=600), np.arange(start=300, stop=600))
-grid = np.stack((x_cords, y_cords), axis=2)
+    x_cords, y_cords = np.meshgrid(np.arange(start=300, stop=600), np.arange(start=300, stop=600))
+    grid = np.stack((x_cords, y_cords), axis=2)
 
-im = spiral(grid, clf.predict, im, bins)
-# try and rebuild the image
-# for i in range(301):
-#     for j in range(301):
-#         y_hat = clf.predict(sample_pixels(im, 300+i, 300+j, sample_size).reshape(1, -1))
-#         im[300+i, 300+j, :] = bins[int(y_hat)]
+    im = spiral(grid, clf.predict, im, bins, sample_size)
+    # try and rebuild the image
+    # for i in range(301):
+    #     for j in range(301):
+    #         y_hat = clf.predict(sample_pixels(im, 300+i, 300+j, sample_size).reshape(1, -1))
+    #         im[300+i, 300+j, :] = bins[int(y_hat)]
 
-plt.imshow(im)
-plt.show()
-# parts = np.array_split(im, 3)
-# parts = np.stack(parts)
-# parts = np.array_split(parts, 3, axis=2)
-# parts = np.stack(parts)
-# plt.imshow(parts[0,0, :, :, :])
-# plt.show()
+    plt.imshow(im)
+    plt.show()
+    # parts = np.array_split(im, 3)
+    # parts = np.stack(parts)
+    # parts = np.array_split(parts, 3, axis=2)
+    # parts = np.stack(parts)
+    # plt.imshow(parts[0,0, :, :, :])
+    # plt.show()
 
-# down_sample = data[0:im.shape[0]:9, 0:im.shape[1]:9, :]
-# print(down_sample.shape)
+    # down_sample = data[0:im.shape[0]:9, 0:im.shape[1]:9, :]
+    # print(down_sample.shape)
 
-# plt.imshow(down_sample)
-# plt.show()
+    # plt.imshow(down_sample)
+    # plt.show()
 
-# down_sample = im[0:im.shape[0]:9, 0:im.shape[1]:9, :]
-# print(down_sample.shape)
+    # down_sample = im[0:im.shape[0]:9, 0:im.shape[1]:9, :]
+    # print(down_sample.shape)
 
-# plt.imshow(down_sample)
-# plt.show()
+    # plt.imshow(down_sample)
+    # plt.show()
+main()
 
 
