@@ -103,9 +103,6 @@ def alternating(matrix, func, out, bins ,sample_size):
     r = matrix.shape[0] -1
     org = out
     while l <= r:
-        if l % 100 == 0:
-            plt.imshow(org)
-            plt.show()
         for element in matrix[l, l:r+1, :]:
             x,y = element[0], element[1]
             y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
@@ -157,7 +154,7 @@ def main():
     plt.imshow(bins.reshape(1, -1, 3))
     plt.show()
 
-    clf = RandomForestClassifier(n_estimators=10, random_state=22, n_jobs=1, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
+    clf = RandomForestClassifier(n_estimators=4, random_state=22, n_jobs=1, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
     sample_size = 16
     X, Y = generate_dataset(im, sample_size, 40000, bins, p=0.25)
 
@@ -181,7 +178,10 @@ def main():
     grid = np.stack((x_cords, y_cords), axis=2)
 
     for i in range(4):
-        im = alternating(grid, clf.predict, np.rot90(im), bins, sample_size)
+        im = alternating(np.rot90(grid, k=i), clf.predict, np.rot90(im, k=i), bins, sample_size)
+        im = np.rot90(im, k=-i)
+        plt.imshow(im)
+        plt.show()
     # try and rebuild the image
     # for i in range(301):
     #     for j in range(301):

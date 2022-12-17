@@ -128,5 +128,11 @@ def get_original_data():
     image= np.stack(image)
     image = list(image.reshape(9, 300, 300, 3))
     del image[4]
-    image = np.concatenate(np.stack(image), axis=0)
+    
+    processed_data = []
+    for i, image in enumerate(image):
+        for r in range(4):
+            processed_data.append(np.rot90(image))
+           
+    image = np.concatenate(np.stack(processed_data), axis=0)
     return image
