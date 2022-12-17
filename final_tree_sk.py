@@ -22,7 +22,7 @@ import pickle
 # print(acc)
 
 # quit()
-patch_size = 10
+patch_size = 7
 # TODO
 def sample_pixels_with_noise(image, x, y, n, colors, p):
     image = image[x-patch_size:x+patch_size, y-patch_size:y+patch_size, :]
@@ -97,6 +97,11 @@ def generate_dataset(image, n, size, bins, p=0.1):
     
     return X, Y
 
+
+# def alternatng(matrix, func, out, bins ,sample_size):
+#    for i in range(matrix.shape[0]):
+#         for i in ()
+
 # TODO
 def spiral(matrix, func, output, bins, sample_size):
     print(matrix.size)
@@ -127,8 +132,8 @@ def main():
     plt.imshow(bins.reshape(1, -1, 3))
     plt.show()
 
-    clf = RandomForestClassifier(n_estimators=100, random_state=22, n_jobs=4, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
-    sample_size = 4
+    clf = RandomForestClassifier(n_estimators=10, random_state=22, n_jobs=4, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
+    sample_size = 32
     X, Y = generate_dataset(im, sample_size, 4000, bins, p=0.15)
 
     dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
