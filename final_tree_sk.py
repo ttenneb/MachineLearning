@@ -22,7 +22,7 @@ import pickle
 # print(acc)
 
 # quit()
-patch_size = 5
+patch_size = 4
 # TODO
 def sample_pixels_with_noise(image, x, y, n, colors, p):
     image = image[x-patch_size:x+patch_size, y-patch_size:y+patch_size, :]
@@ -113,7 +113,6 @@ def alternating(matrix, func, out, bins ,sample_size, noise):
            x,y = element[0], element[1]
            y_hat = func(sample_pixels_with_noise(org, x, y, sample_size, bins, noise).reshape(1, -1))
            out[x, y] = bins[int(y_hat)]
-        
         for element in matrix[l:r+1, l, :]:
            x,y = element[0], element[1]
            y_hat = func(sample_pixels_with_noise(org, x, y, sample_size, bins, noise).reshape(1, -1))
@@ -158,7 +157,7 @@ def main():
 
     clf = RandomForestClassifier(n_estimators=10, random_state=22, n_jobs=1, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
     sample_size = 32
-    X, Y = generate_dataset(im, sample_size, 100000, bins, p=0.2)
+    X, Y = generate_dataset(im, sample_size, 100000, bins, p=0.3)
 
     dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
 
@@ -190,23 +189,16 @@ def main():
 
     # generate Image
     print("Generating Image")
-    # for i in range(4):
-    #     im = alternating(np.rot90(grid, k=i), clf.predict, np.rot90(im, k=i), bins, sample_size, i*.05)
-    #     im = np.rot90(im, k=-i)
-    #     plt.imshow(im)
-    #     plt.show()
-    im = alternating(grid, clf.predict, im, bins, sample_size, 0)
-    plt.imshow(im)
+
+    im_org = np.copy(im)
+
+    im_alt = alternating(grid, clf.predict, im, bins, sample_size, 0.1)
+    plt.imshow(im_alt)
     plt.show()
-    im = spiral(grid, clf.predict, im, bins, sample_size)
-    plt.imshow(im)
+    im_spiral = spiral(grid, clf.predict, im_org, bins, sample_size)
+    plt.imshow(im_spiral)
     plt.show()
-    im = alternating(grid, clf.predict, im, bins, sample_size, 0.2)
-    plt.imshow(im)
-    plt.show()
-    im = spiral(grid, clf.predict, im, bins, sample_size)
-    plt.imshow(im)
-    plt.show()
+   
     # parts = np.array_split(im, 3)
     # parts = np.stack(parts)
     # parts = np.array_split(parts, 3, axis=2)

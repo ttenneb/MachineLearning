@@ -18,8 +18,8 @@ del image[4]
 image = np.concatenate(np.stack(image), axis=0)
 
 # number of bins/colors to find
-bin_count = 32
-min_percent = .01
+bin_count = 12
+min_percent = .005
 
 show_image = False
 show_palette = False
