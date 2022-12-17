@@ -6,15 +6,6 @@ from classification_tree import ClassificationTree
 from final_data_processing import get_original_data, quantize_indexs
 import pickle
 
-# def extract_subarrays(matrix, height, width, step_size_h, step_size_w):
-#     D_h, D_w, _ = matrix.shape
-#     subarrays = []
-#     for i in range(0, D_h - height + 1, step_size_h):
-#         for j in range(0, D_w - width + 1, step_size_w):
-#             subarray = matrix[i:i+height, j:j+width, :]
-#             subarrays.append(subarray)
-#     return subarrays
-
 # get_original_data()
 # clf = ClassificationTree()
 # clf.train()
