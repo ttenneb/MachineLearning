@@ -126,12 +126,12 @@ except:
 #     for j in range(301):
 #         im[300+i, 300+j, :] = bins[np.random.randint(0, len(bins))]
 print(bins.shape)
-plt.imshow(bins.reshape(4, 4, 3))
+plt.imshow(bins.reshape(1, -1, 3))
 plt.show()
 
 clf = RandomForestClassifier(n_estimators=100, random_state=22, n_jobs=1, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
-sample_size = 16
-X, Y = generate_dataset(im, sample_size, 40000, bins, p=0.15)
+sample_size = 4
+X, Y = generate_dataset(im, sample_size, 4000, bins, p=0.15)
 
 dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
 

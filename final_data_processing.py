@@ -18,7 +18,7 @@ del image[4]
 image = np.concatenate(np.stack(image), axis=0)
 
 # number of bins/colors to find
-bin_count = 16
+bin_count = 4
 
 show_image = False
 show_palette = False
@@ -68,7 +68,7 @@ if bins is None or len(bins) != bin_count:
 
 
 if show_palette:
-    plt.imshow(bins.reshape(int(sqrt(bin_count)), int(sqrt(bin_count)), 3).astype(np.uint8))
+    plt.imshow(bins.reshape(1, -1, 3).astype(np.uint8))
     plt.show()
 
 if show_image:
