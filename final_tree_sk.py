@@ -110,6 +110,12 @@ plt.show()
 clf = GradientBoostingClassifier(n_estimators=100, learning_rate=.01, max_depth=2, random_state=0, verbose=1)
 
 X, Y = generate_dataset(im, 32, 10000, bins, p=0.1)
+
+dataset = np.concatenate((X.reshape(Y.shape[0], -1), Y), axis=1)
+
+np.savetxt("dataset.csv", dataset, delimiter=",")
+
+
 print(X.shape, Y.shape)
 clf.fit(X.reshape(Y.shape[0], -1), Y)
 
