@@ -98,9 +98,32 @@ def generate_dataset(image, n, size, bins, p=0.1):
     return X, Y
 
 
-# def alternatng(matrix, func, out, bins ,sample_size):
-#    for i in range(matrix.shape[0]):
-#         for i in ()
+def alternating(matrix, func, out, bins ,sample_size):
+    l = 0
+    r = matrix.shape[0] - 1
+    org = np.copy(out)
+    while l <= r:
+        for element in matrix[l, l:r, :]:
+            print(element) 
+            x,y = element[0], element[1]
+            y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
+            out[x, y] = bins[int(y_hat)]
+        for element in matrix[r, l:r, :]:
+           x,y = element[0], element[1]
+           y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
+           out[x, y] = bins[int(y_hat)]
+        
+        for element in matrix[l:r, l, :]:
+           x,y = element[0], element[1]
+           y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
+           out[x, y] = bins[int(y_hat)]
+        for element in matrix[l:r, r, :]:
+           x,y = element[0], element[1]
+           y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
+           out[x, y] = bins[int(y_hat)]
+        l += 1
+        r -= 1
+    return out
 
 # TODO
 def spiral(matrix, func, output, bins, sample_size):
@@ -132,9 +155,9 @@ def main():
     plt.imshow(bins.reshape(1, -1, 3))
     plt.show()
 
-    clf = RandomForestClassifier(n_estimators=10, random_state=22, n_jobs=4, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
-    sample_size = 32
-    X, Y = generate_dataset(im, sample_size, 4000, bins, p=0.15)
+    clf = RandomForestClassifier(n_estimators=20, random_state=22, n_jobs=4, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
+    sample_size = 16
+    X, Y = generate_dataset(im, sample_size, 40000, bins, p=0.15)
 
     dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
 
@@ -153,7 +176,7 @@ def main():
     x_cords, y_cords = np.meshgrid(np.arange(start=300, stop=600), np.arange(start=300, stop=600))
     grid = np.stack((x_cords, y_cords), axis=2)
 
-    im = spiral(grid, clf.predict, im, bins, sample_size)
+    im = alternating(grid, clf.predict, im, bins, sample_size)
     # try and rebuild the image
     # for i in range(301):
     #     for j in range(301):
