@@ -18,7 +18,7 @@ del image[4]
 image = np.concatenate(np.stack(image), axis=0)
 
 # number of bins/colors to find
-bin_count = 9
+bin_count = 16
 
 show_image = False
 show_palette = False

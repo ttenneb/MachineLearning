@@ -1,4 +1,4 @@
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -112,10 +112,10 @@ except:
 #     for j in range(301):
 #         im[300+i, 300+j, :] = bins[np.random.randint(0, len(bins))]
 print(bins.shape)
-plt.imshow(bins.reshape(3, 3, 3))
+plt.imshow(bins.reshape(4, 4, 3))
 plt.show()
 
-clf = GradientBoostingClassifier(n_estimators=100, learning_rate=.01, max_depth=2, random_state=0, verbose=1)
+clf = RandomForestClassifier(n_estimators=100, max_depth=3, random_state=0, verbose=1, n_jobs=4, bootstrap=True)
 sample_size = 32
 X, Y = generate_dataset(im, sample_size, 200000, bins, p=0.25)
 
@@ -136,7 +136,6 @@ im = np.flip(im, axis=-1)
 for i in range(301):
     for j in range(301):
         y_hat = clf.predict(sample_pixels(im, 300+i, 300+j, sample_size).reshape(1, -1))
-        print(y_hat)
         im[300+i, 300+j, :] = bins[int(y_hat)]
 
 plt.imshow(im)
