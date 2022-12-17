@@ -22,8 +22,11 @@ import pickle
 # print(acc)
 
 # quit()
+patch_size = 10
 # TODO
 def sample_pixels_with_noise(image, x, y, n, colors, p):
+    image = image[x-patch_size:x+patch_size, y-patch_size:y+patch_size, :]
+
     # Calculate the distances from the pixel at (x, y) to all other pixels
     x_coords, y_coords = np.meshgrid(np.arange(image.shape[0]), np.arange(image.shape[1]))
     distances = np.sqrt((x_coords - x)**2 + (y_coords - y)**2)
@@ -53,6 +56,7 @@ def sample_pixels_with_noise(image, x, y, n, colors, p):
 # TODO
 def sample_pixels(image, x, y, n):
     # Calculate the distances from the pixel at (x, y) to all other pixels
+    image = image[x-patch_size:x+patch_size, y-patch_size:y+patch_size, :]
     x_coords, y_coords = np.meshgrid(np.arange(image.shape[0]), np.arange(image.shape[1]))
     distances = np.sqrt((x_coords - x)**2 + (y_coords - y)**2)
     
