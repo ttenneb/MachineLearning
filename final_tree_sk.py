@@ -6,8 +6,6 @@ from classification_tree import ClassificationTree
 from final_data_processing import get_original_data, quantize_indexs
 import pickle
 
-
-
 # def extract_subarrays(matrix, height, width, step_size_h, step_size_w):
 #     D_h, D_w, _ = matrix.shape
 #     subarrays = []
@@ -99,11 +97,18 @@ def generate_dataset(image, n, size, bins, p=0.1):
     
     return X, Y
 
+# TODO
+def spiral(matrix, func, output, bins):
+    print(matrix.size)
+    if matrix.size == 0: 
+        return output
 
-def spiral(matrix, func, output):
-    for row in matrix[0, :, 2]:
-        x,y = row[0], row[1]
-        output[x, y] = func(sample_pixels(im, x, y, sample_size).reshape(1, -1))
+    for element in matrix[0, :, :]:
+        x,y = element[0], element[1]
+        y_hat = func(sample_pixels(im, x, y, sample_size).reshape(1, -1))
+        # print(y_hat)
+        output[x, y] = bins[int(y_hat)]
+    spiral(np.rot90(matrix[1:, :, :]), func, output, bins)
     return output
 
 
@@ -122,9 +127,9 @@ print(bins.shape)
 plt.imshow(bins.reshape(4, 4, 3))
 plt.show()
 
-clf = RandomForestClassifier(n_estimators=100, max_depth=3, random_state=0, verbose=1, n_jobs=4, bootstrap=True)
+clf = RandomForestClassifier(n_estimators=250, max_depth=3, random_state=0, n_jobs=1)
 sample_size = 32
-X, Y = generate_dataset(im, sample_size, 200000, bins, p=0.25)
+X, Y = generate_dataset(im, sample_size, 20000, bins, p=0.25)
 
 dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
 
@@ -143,7 +148,7 @@ im = np.flip(im, axis=-1)
 x_cords, y_cords = np.meshgrid(np.arange(start=300, stop=600), np.arange(start=300, stop=600))
 grid = np.stack((x_cords, y_cords), axis=2)
 
-im = spiral(grid, clf.predict, im)
+im = spiral(grid, clf.predict, im, bins)
 # try and rebuild the image
 # for i in range(301):
 #     for j in range(301):
