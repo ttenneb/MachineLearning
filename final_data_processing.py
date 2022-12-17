@@ -1,0 +1,122 @@
+import cv2
+import numpy as np
+from math import sqrt
+from matplotlib import pyplot as plt
+import pickle
+
+image_original = cv2.imread("Leaves_Masked.jpg")
+# fix the colors (BGR to RGB)
+image_original = np.flip(image_original, axis=-1)
+
+# get rid of the white part so we can find the colors
+image = np.array_split(image_original, 3)
+image = np.stack(image)
+image = np.array_split(image, 3, axis=2)
+image= np.stack(image)
+image = list(image.reshape(9, 300, 300, 3))
+del image[4]
+image = np.concatenate(np.stack(image), axis=0)
+
+# number of bins/colors to find
+bin_count = 64
+
+show_image = False
+show_palette = False
+    
+try:
+    bins = pickle.load(open("bins.p", "rb"))
+except:
+    bins = None
+
+if bins is None or len(bins) != bin_count:
+    print("Defining Bins")
+    # must be square
+    bins = np.random.randint(high=256, low = 0, size=(bin_count, 3))
+    binned_pixels = [[] for i in range(bin_count)]
+    # find nearest bin for each value
+
+    for iteration in range(10):
+        print("Finding Nearest Bin for Each Value")
+        # find distances for each bin for each pixel
+        dist = np.sum((bins[:, None, :]-image.reshape(-1, 3))**2, axis=2)
+        # get closest bin for each pixel
+        idxs = np.argmin(dist, axis=0)
+        # assign pixel to bin
+        for i, pixel in enumerate(image.reshape(-1, 3)):
+            binned_pixels[idxs[i]].append(pixel)
+        
+        print("Calculating Mean for Each Bin")
+        # calculate mean for each bin and redefine bin value
+        total_zeros = 0
+        max = 0
+        max_bin = 0
+        
+        for i, bin in enumerate(binned_pixels):
+            if len(bin) > 0:
+                bins[i] = np.mean(bin, axis=0)
+                if len(bin) > max:
+                    max = len(bin)
+                    max_bin = i
+            else:
+                bins[i] = np.random.randint(high=256, low = 0, size=(3))
+                total_zeros += 1
+        if total_zeros == 0:
+            break
+        # stop pixels from collecting at local maximum
+        bins[max_bin] = np.random.randint(high=256, low = 0, size=(3))
+        print("Iteration: ", iteration, " total_zeros: ", total_zeros)        
+
+
+if show_palette:
+    plt.imshow(bins.reshape(int(sqrt(bin_count)), int(sqrt(bin_count)), 3).astype(np.uint8))
+    plt.show()
+
+if show_image:
+    # find nearest bin for each value
+    dist = np.sum((bins[:, None, :]-image_original.reshape(-1, 3))**2, axis=2)
+    idxs = np.argmin(dist, axis=0)
+
+    # Map the image to the nearest colors
+    quantized = bins[idxs]
+
+    plt.imshow(quantized.reshape(image_original.shape).astype(np.uint8))
+    plt.show()
+
+pickle.dump(bins, open("bins.p", "wb"))
+
+def quantize(image, bins = bins):
+    # find nearest bin for each value
+    dist = np.sum((bins[:, None, :]-image.reshape(-1, 3))**2, axis=2)
+    idxs = np.argmin(dist, axis=0)
+
+    # Map the image to the nearest colors
+    quantized = bins[idxs]
+
+    return quantized.reshape(image.shape).astype(np.uint8)
+
+def quantize_indexs(image, bins = bins):
+    # find nearest bin for each value
+    dist = np.sum((bins[:, None, :]-image.reshape(-1, 3))**2, axis=2)
+    idxs = np.argmin(dist, axis=0)
+
+    # Map the image to the nearest colors
+    quantized = idxs
+
+    return quantized.reshape(image.shape[0], image.shape[1], 1).astype(np.uint8)
+
+# print(bins)
+
+def get_original_data():
+    image_original = cv2.imread("Leaves_Masked.jpg")
+    # fix the colors (BGR to RGB)
+    image_original = np.flip(image_original, axis=-1)
+
+    # get rid of the white part so we can find the colors
+    image = np.array_split(image_original, 3)
+    image = np.stack(image)
+    image = np.array_split(image, 3, axis=2)
+    image= np.stack(image)
+    image = list(image.reshape(9, 300, 300, 3))
+    del image[4]
+    image = np.concatenate(np.stack(image), axis=0)
+    return image
