@@ -180,7 +180,8 @@ def main():
     x_cords, y_cords = np.meshgrid(np.arange(start=300, stop=600), np.arange(start=300, stop=600))
     grid = np.stack((x_cords, y_cords), axis=2)
 
-    im = alternating(grid, clf.predict, im, bins, sample_size)
+    for i in range(4):
+        im = alternating(grid, clf.predict, np.rot90(im), bins, sample_size)
     # try and rebuild the image
     # for i in range(301):
     #     for j in range(301):
