@@ -100,24 +100,26 @@ def generate_dataset(image, n, size, bins, p=0.1):
 
 def alternating(matrix, func, out, bins ,sample_size):
     l = 0
-    r = matrix.shape[0] - 1
-    org = np.copy(out)
+    r = matrix.shape[0] -1
+    org = out
     while l <= r:
-        for element in matrix[l, l:r, :]:
-            print(element) 
+        if l % 100 == 0:
+            plt.imshow(org)
+            plt.show()
+        for element in matrix[l, l:r+1, :]:
             x,y = element[0], element[1]
             y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
             out[x, y] = bins[int(y_hat)]
-        for element in matrix[r, l:r, :]:
+        for element in matrix[r, l:r+1, :]:
            x,y = element[0], element[1]
            y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
            out[x, y] = bins[int(y_hat)]
         
-        for element in matrix[l:r, l, :]:
+        for element in matrix[l:r+1, l, :]:
            x,y = element[0], element[1]
            y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
            out[x, y] = bins[int(y_hat)]
-        for element in matrix[l:r, r, :]:
+        for element in matrix[l:r+1, r, :]:
            x,y = element[0], element[1]
            y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
            out[x, y] = bins[int(y_hat)]
@@ -155,9 +157,9 @@ def main():
     plt.imshow(bins.reshape(1, -1, 3))
     plt.show()
 
-    clf = RandomForestClassifier(n_estimators=20, random_state=22, n_jobs=4, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
+    clf = RandomForestClassifier(n_estimators=10, random_state=22, n_jobs=1, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
     sample_size = 16
-    X, Y = generate_dataset(im, sample_size, 40000, bins, p=0.15)
+    X, Y = generate_dataset(im, sample_size, 40000, bins, p=0.25)
 
     dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
 
@@ -170,7 +172,9 @@ def main():
 
     im = cv2.imread("Leaves_Masked.jpg")
     im = np.flip(im, axis=-1)
-
+    for i in range(301):
+        for j in range(301):
+            im[300+i, 300+j, :] = bins[np.random.randint(0, len(bins))]
 
 
     x_cords, y_cords = np.meshgrid(np.arange(start=300, stop=600), np.arange(start=300, stop=600))
