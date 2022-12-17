@@ -103,13 +103,13 @@ except:
 # for i in range(301):
 #     for j in range(301):
 #         im[300+i, 300+j, :] = bins[np.random.randint(0, len(bins))]
-
-# plt.imshow(im)
-# plt.show()
+print(bins.shape)
+plt.imshow(bins.reshape(3, 3, 3))
+plt.show()
 
 clf = GradientBoostingClassifier(n_estimators=100, learning_rate=.01, max_depth=2, random_state=0, verbose=1)
 
-X, Y = generate_dataset(im, 16, 1000, bins, p=0.1)
+X, Y = generate_dataset(im, 32, 10000, bins, p=0.1)
 print(X.shape, Y.shape)
 clf.fit(X.reshape(Y.shape[0], -1), Y)
 
@@ -121,7 +121,9 @@ im = np.flip(im, axis=-1)
 # try and rebuild the image
 for i in range(25):
     for j in range(25):
-        im[300+i, 300+j, :] = clf.predict(sample_pixels(im, 300+i, 300+j, 16).reshape(1, -1))
+        y_hat = clf.predict(sample_pixels(im, 300+i, 300+j, 16).reshape(1, -1))
+        print(y_hat)
+        im[300+i, 300+j, :] = bins[int(y_hat)]
 
 plt.imshow(im)
 plt.show()

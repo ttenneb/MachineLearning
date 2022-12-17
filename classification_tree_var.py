@@ -94,7 +94,7 @@ def information_gain(data):
         IG[i] = Hy - totalx
     return IG
 
-def add_split(d_tree, data):
+def add_split(data):
     ig = information_gain(data)
     if ig == None:
         return -1,0,0,0

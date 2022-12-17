@@ -59,29 +59,30 @@ def corr(data, means):
         corrs[i] = abs(covs[i]/sqrt(vars[i]*vars[-1]))
     return corrs
 
+# Fit a linear regression model to the data using learning_rate. Return the weights as a numpy array
 
 
-def main():
-    # generate data
-    d = 10
-    data = generate(d, 10000)
-    test = generate(d, 1000)
+# def main():
+#     # generate data
+#     d = 10
+#     data = generate(d, 10000)
+#     test = generate(d, 1000)
 
-    # learning rate 
-    lr = 0.0001
-    # initial weights
-    w = np.ones((d,))
-    # train with SGD
-    for i in range(10000):
-        # pick random rows
-        sample = data[np.random.choice(data.shape[0], 20, replace=False)]
-        # calculate the gradient and update weights
-        for row in sample:
-            w = w - lr*(np.dot(w, row[:-1])-row[-1])*row[:-1]
+#     # learning rate 
+#     lr = 0.0001
+#     # initial weights
+#     w = np.ones((d,))
+#     # train with SGD
+#     for i in range(10000):
+#         # pick random rows
+#         sample = data[np.random.choice(data.shape[0], 20, replace=False)]
+#         # calculate the gradient and update weights
+#         for row in sample:
+#             w = w - lr*(np.dot(w, row[:-1])-row[-1])*row[:-1]
 
-    # make predictions
-    pred = np.dot(test[:, :-1], w)
-    # calculate the mean squared error
-    mse = np.mean((pred-test[:,-1])**2)
-    print("MSE: ", mse)
-main()
+#     # make predictions
+#     pred = np.dot(test[:, :-1], w)
+#     # calculate the mean squared error
+#     mse = np.mean((pred-test[:,-1])**2)
+#     print("MSE: ", mse)
+# main()
