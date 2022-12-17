@@ -28,7 +28,7 @@ patch_size = 10
 # TODO
 def sample_pixels_with_noise(image, x, y, n, colors, p):
     image = image[x-patch_size:x+patch_size, y-patch_size:y+patch_size, :]
-
+    
     # Calculate the distances from the pixel at (x, y) to all other pixels
     x_coords, y_coords = np.meshgrid(np.arange(image.shape[0]), np.arange(image.shape[1]))
     distances = np.sqrt((x_coords - x)**2 + (y_coords - y)**2)
@@ -100,6 +100,13 @@ def generate_dataset(image, n, size, bins, p=0.1):
     return X, Y
 
 
+def spiral(matrix, func, output):
+    for row in matrix[0, :, 2]:
+        x,y = row[0], row[1]
+        output[x, y] = func(sample_pixels(im, x, y, sample_size).reshape(1, -1))
+    return output
+
+
 im = get_original_data()
 
 try:
@@ -132,11 +139,16 @@ im = cv2.imread("Leaves_Masked.jpg")
 im = np.flip(im, axis=-1)
 
 
+
+x_cords, y_cords = np.meshgrid(np.arange(start=300, stop=600), np.arange(start=300, stop=600))
+grid = np.stack((x_cords, y_cords), axis=2)
+
+im = spiral(grid, clf.predict, im)
 # try and rebuild the image
-for i in range(301):
-    for j in range(301):
-        y_hat = clf.predict(sample_pixels(im, 300+i, 300+j, sample_size).reshape(1, -1))
-        im[300+i, 300+j, :] = bins[int(y_hat)]
+# for i in range(301):
+#     for j in range(301):
+#         y_hat = clf.predict(sample_pixels(im, 300+i, 300+j, sample_size).reshape(1, -1))
+#         im[300+i, 300+j, :] = bins[int(y_hat)]
 
 plt.imshow(im)
 plt.show()
