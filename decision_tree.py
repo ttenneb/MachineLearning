@@ -109,12 +109,14 @@ def add_split(d_tree, data):
         sub_arrays = [[], []]
     #  save mean of each sub array, mean of all data, threshold, length of data, and variable to split on
     split_avg.append(means[-1])
+    print(split_val)
     return x_split, split_val, split_avg, len(data)
 
-def split(level, data):
+def split(d_tree, level, data):
     x_split, thresh_split, _, _ = d_tree[level]
     sub_arrays = [[], []]
     for row in data:
+        # print(row[x_split], thresh_split)
         if row[x_split] < thresh_split:
             sub_arrays[0].append(row)
         else:
@@ -123,17 +125,20 @@ def split(level, data):
     return sub_arrays
 
 # recursive function to build the decision tree
-def build_tree(d_tree, data, depth):
+def build_tree(d_tree, data, depth, max_depth):
     # check if we have reached max depth (depth is actaully just index of d_tree) log2(depth + 1) == real depth
     if log2(depth + 1) > max_depth:
-        return
+        return d_tree
     # calculate the best split
     x_split, thresh_split, avg, sample_size = add_split(d_tree, data)
-    if sample_size == 2:
-        print(data)
-    print(sample_size, x_split, thresh_split)
+    # If everything is one class we can "split" anywhere, but really we stop here when predecting
+    if thresh_split == None:
+        thresh_split = 0
+    # if sample_size == 2:
+        # print(data)
+    # print(sample_size, x_split, thresh_split)
     if sample_size < 2:
-        return
+        return d_tree
     # create node in tree
     if depth not in d_tree.keys():
         d_tree[depth] = [-1, -1, None, -1]
@@ -146,19 +151,18 @@ def build_tree(d_tree, data, depth):
     if(log2(depth*2 + 2 + 1) < max_depth):
         d_tree[depth*2 + 2] = (-1, -1, avg[1], -1)
     # print("split at, ", depth)
-    data1, data2 = split(depth, data)
+    data1, data2 = split(d_tree, depth, data)
     data1 = np.array(data1)
     data2 = np.array(data2)
     # continue building tree on children nodes
     # print("node: ", depth)
     if len(data1) > 1:
-        build_tree(d_tree, data1, depth*2 + 1)
+        return build_tree(d_tree, data1, depth*2 + 1, max_depth)
     if len(data2) > 1:
-        build_tree(d_tree, data2, depth*2 + 2)
+        return build_tree(d_tree, data2, depth*2 + 2, max_depth)
 
 
-def predict(d_tree, test, max_d):
-    global min_sample_size
+def predict(d_tree, test, max_d, min_sample_size):
     output = []
     # predict the output for each row in the test data
     d_count = 0
@@ -167,8 +171,15 @@ def predict(d_tree, test, max_d):
         while True:
             # continue down tree until terminating condition is met
             x_split, thresh_split, avg, sample_size = d_tree[depth]
-            if x_split > 5:
-                d_count += 1
+
+            if x_split == -1:
+                # print("returned at depth ", depth, "max depth ", max_d)
+                output.append(avg)
+                break
+            if thresh_split == 0:
+                output.append(avg)
+                break
+
             if data[x_split] < thresh_split:
                 d = depth*2 + 1
             else:
@@ -186,67 +197,100 @@ def predict(d_tree, test, max_d):
                 break
             else:
                 depth = d
-            
-            
-            
-            if x_split == -1:
-                # print("returned at depth ", depth, "max depth ", max_d)
-                output.append(avg)
-                break
+        
             
     return np.array(output), d_count
+class ClassificationTree:
+    def __init__(self):
+        self.d_trees = []
+        self.d_weights = []
+        self.depth_error = []
+        self.train_size = 0
+        self.train_depth_error = []
+    
+    def train(self, X, Y, max_depth=4, min_sample_size=5):
+        print(X.shape, Y.shape)
+        data = np.concatenate((X, Y.reshape(-1, 1)), axis=1)
+        print(data.shape)
+        self.train_size = len(data)
+        
+        unique_count = len(np.unique(data[:, -1]))
+        
+        # group data by class
+        class_data = [[] for i in range(unique_count)]
+        for i in range(unique_count):
+            positives = data[data[:, -1] == i]
+            positives[:, -1] = 1
+            negatives = data[data[:, -1] != i]
+            negatives[:, -1] = -1
+            class_data[i] = np.concatenate((positives, negatives), axis=0)
+        
+            d_tree = build_tree({}, class_data[i], 0, max_depth)
+            self.d_trees.append(d_tree)
 
-d_tree = {}
-max_depth = 20
-min_sample_size = 1
-def main():
-    global max_depth
-    global d_tree
-    global min_sample_size
+    
+    def predict(self, X, weights, max_depth=4, min_sample_size=10):
+        min_sample_size = len(X)/self.train_size * min_sample_size
+        
+        class_predictions = [[] for i in range(len(self.d_trees))]
+        for i, tree in enumerate(self.d_trees):
+            y, _ = predict(tree, X, max_depth, min_sample_size)
+            class_predictions[i] = y*weights[i]
+            
+        class_predictions = np.array(class_predictions)
+        y = np.argmax(class_predictions, axis=0)
+        return y
+# d_tree = {}
+# max_depth = 20
+# min_sample_size = 1
+# def main():
+#     global max_depth
+#     global d_tree
+#     global min_sample_size
     
 
-    depth_error = []
-    train_depth_error = []
+#     depth_error = []
+#     train_depth_error = []
 
-    # generate data
-    data = generate(10, 1000)
-    test = generate(10, 100)
+#     # generate data
+#     data = generate(10, 1000)
+#     test = generate(10, 100)
 
-    # calculate constant and constant prediction calculate error
-    mean = np.mean(data, axis=0)[-1]
-    print("mean: ", mean)
-    c = test[:, -1]
-    p = np.ones(c.shape)*mean
-    #error between test and sample mean
-    print("error: ", np.mean((c-p)**2))
+#     # calculate constant and constant prediction calculate error
+#     mean = np.mean(data, axis=0)[-1]
+#     print("mean: ", mean)
+#     c = test[:, -1]
+#     p = np.ones(c.shape)*mean
+#     #error between test and sample mean
+#     print("error: ", np.mean((c-p)**2))
 
     
-    print("Building tree")
-    # build a decision tree with train data
-    build_tree(d_tree, data, 0)
-    print("Tree built")
-    d_total = 0
+#     print("Building tree")
+#     # build a decision tree with train data
+#     build_tree(d_tree, data, 0)
+#     print("Tree built")
+#     d_total = 0
    
-    depth_error = []
-    train_depth_error = []
-    d_total = 0
-    for i in range(max_depth):
-        max_depth = i
-        #test error
-        c = (test)[:, -1]
-        p, d_count = predict(d_tree, test, max_d=max_depth)
-        d_total += d_count
-        # error between test and predict
-        err = np.mean((c-p)**2)
-        depth_error.append((max_depth+1, err))
-        print("Finished at depth ", i+1, " with test average error of ", err)
-        # train error
-        c = (data)[:, -1]
-        p, d_count = predict(d_tree, data, max_d=max_depth)
-        # error between test and predict
-        err = np.mean((c-p)**2)
-        train_depth_error.append((max_depth+1, err))
-        print("Finished at depth ", i+1, " with train average error of ", err)
+#     depth_error = []
+#     train_depth_error = []
+#     d_total = 0
+#     for i in range(max_depth):
+#         max_depth = i
+#         #test error
+#         c = (test)[:, -1]
+#         p, d_count = predict(d_tree, test, max_d=max_depth)
+#         d_total += d_count
+#         # error between test and predict
+#         err = np.mean((c-p)**2)
+#         depth_error.append((max_depth+1, err))
+#         print("Finished at depth ", i+1, " with test average error of ", err)
+#         # train error
+#         c = (data)[:, -1]
+#         p, d_count = predict(d_tree, data, max_d=max_depth)
+#         # error between test and predict
+#         err = np.mean((c-p)**2)
+#         train_depth_error.append((max_depth+1, err))
+#         print("Finished at depth ", i+1, " with train average error of ", err)
 
 
 
@@ -254,4 +298,4 @@ def main():
         
     
     
-main()
+# main()
