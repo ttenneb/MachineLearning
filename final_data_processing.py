@@ -18,7 +18,8 @@ del image[4]
 image = np.concatenate(np.stack(image), axis=0)
 
 # number of bins/colors to find
-bin_count = 8
+bin_count = 32
+min_percent = .01
 
 show_image = False
 show_palette = False
@@ -28,13 +29,14 @@ try:
 except:
     bins = None
 binned_pixels = []
+total_pixels = len(image.reshape(-1, 3))/9
 if bins is None or len(bins) != bin_count:
     print("Defining Bins")
     # must be square
     bins = np.random.randint(high=256, low = 0, size=(bin_count, 3))
     # find nearest bin for each value
 
-    for iteration in range(10):
+    for iteration in range(100):
         binned_pixels = [[] for i in range(bin_count)]
         print("Finding Nearest Bin for Each Value")
         # find distances for each bin for each pixel
@@ -52,7 +54,8 @@ if bins is None or len(bins) != bin_count:
         max_bin = 0
         
         for i, bin in enumerate(binned_pixels):
-            if len(bin) > 0:
+            print(len(bin)/total_pixels)
+            if len(bin)/total_pixels > min_percent:
                 bins[i] = np.mean(bin, axis=0)
                 if len(bin) > max:
                     max = len(bin)
@@ -89,7 +92,7 @@ bin_sizes = {}
 
 if len(binned_pixels) != 0:
     for i, bin in enumerate(binned_pixels):
-        bin_sizes.update({i: len(bin)/len(image.reshape(-1, 3))})
+        bin_sizes.update({i: len(bin)/total_pixels})
 
     # print(bin_sizes)
     pickle.dump(bin_sizes, open("bin_sizes.p", "wb"))

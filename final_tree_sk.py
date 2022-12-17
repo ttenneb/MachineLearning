@@ -22,7 +22,7 @@ import pickle
 # print(acc)
 
 # quit()
-patch_size = 7
+patch_size = 5
 # TODO
 def sample_pixels_with_noise(image, x, y, n, colors, p):
     image = image[x-patch_size:x+patch_size, y-patch_size:y+patch_size, :]
@@ -44,14 +44,16 @@ def sample_pixels_with_noise(image, x, y, n, colors, p):
     
     # Replace each pixel with a randomly chosen color from the list with probability p
     new_pixels = []
-    for pixel in pixels:
-        if np.random.random() < p:
-            idx = np.random.choice(np.arange(len(colors)))
-            new_pixels.append(colors[idx])
-        else:
-            new_pixels.append(pixel)
-    
-    return new_pixels
+    if p > 0:
+        for pixel in pixels:
+            if np.random.random() < p:
+                idx = np.random.choice(np.arange(len(colors)))
+                new_pixels.append(colors[idx])
+            else:
+                new_pixels.append(pixel)
+        return np.array(new_pixels)
+    else:
+        return pixels
 # TODO
 def sample_pixels(image, x, y, n):
     # Calculate the distances from the pixel at (x, y) to all other pixels
@@ -98,27 +100,27 @@ def generate_dataset(image, n, size, bins, p=0.1):
     return X, Y
 
 
-def alternating(matrix, func, out, bins ,sample_size):
+def alternating(matrix, func, out, bins ,sample_size, noise):
     l = 0
     r = matrix.shape[0] -1
     org = out
     while l <= r:
         for element in matrix[l, l:r+1, :]:
             x,y = element[0], element[1]
-            y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
+            y_hat = func(sample_pixels_with_noise(org, x, y, sample_size, bins, noise).reshape(1, -1))
             out[x, y] = bins[int(y_hat)]
         for element in matrix[r, l:r+1, :]:
            x,y = element[0], element[1]
-           y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
+           y_hat = func(sample_pixels_with_noise(org, x, y, sample_size, bins, noise).reshape(1, -1))
            out[x, y] = bins[int(y_hat)]
         
         for element in matrix[l:r+1, l, :]:
            x,y = element[0], element[1]
-           y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
+           y_hat = func(sample_pixels_with_noise(org, x, y, sample_size, bins, noise).reshape(1, -1))
            out[x, y] = bins[int(y_hat)]
         for element in matrix[l:r+1, r, :]:
            x,y = element[0], element[1]
-           y_hat = func(sample_pixels(org, x, y, sample_size).reshape(1, -1))
+           y_hat = func(sample_pixels_with_noise(org, x, y, sample_size, bins, noise).reshape(1, -1))
            out[x, y] = bins[int(y_hat)]
         l += 1
         r -= 1
@@ -154,17 +156,26 @@ def main():
     plt.imshow(bins.reshape(1, -1, 3))
     plt.show()
 
-    clf = RandomForestClassifier(n_estimators=4, random_state=22, n_jobs=1, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
-    sample_size = 16
-    X, Y = generate_dataset(im, sample_size, 40000, bins, p=0.25)
+    clf = RandomForestClassifier(n_estimators=10, random_state=22, n_jobs=1, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
+    sample_size = 32
+    X, Y = generate_dataset(im, sample_size, 100000, bins, p=0.2)
 
     dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
 
     np.savetxt("dataset.csv", dataset, delimiter=",")
 
+    
 
-    print(X.shape, Y.shape)
+    print("Training")
+
     clf.fit(X.reshape(-1, sample_size*3), Y)
+
+    # test
+    print("testing")
+    X_test, Y_test = generate_dataset(im, sample_size, 1000, bins, p=0.0)
+    print("acc p = 0", clf.score(X_test.reshape(-1, sample_size*3), Y_test))
+    X_test, Y_test = generate_dataset(im, sample_size, 1000, bins, p=0.2)
+    print("acc p = .2", clf.score(X_test.reshape(-1, sample_size*3), Y_test))
 
 
     im = cv2.imread("Leaves_Masked.jpg")
@@ -177,17 +188,23 @@ def main():
     x_cords, y_cords = np.meshgrid(np.arange(start=300, stop=600), np.arange(start=300, stop=600))
     grid = np.stack((x_cords, y_cords), axis=2)
 
-    for i in range(4):
-        im = alternating(np.rot90(grid, k=i), clf.predict, np.rot90(im, k=i), bins, sample_size)
-        im = np.rot90(im, k=-i)
-        plt.imshow(im)
-        plt.show()
-    # try and rebuild the image
-    # for i in range(301):
-    #     for j in range(301):
-    #         y_hat = clf.predict(sample_pixels(im, 300+i, 300+j, sample_size).reshape(1, -1))
-    #         im[300+i, 300+j, :] = bins[int(y_hat)]
-
+    # generate Image
+    print("Generating Image")
+    # for i in range(4):
+    #     im = alternating(np.rot90(grid, k=i), clf.predict, np.rot90(im, k=i), bins, sample_size, i*.05)
+    #     im = np.rot90(im, k=-i)
+    #     plt.imshow(im)
+    #     plt.show()
+    im = alternating(grid, clf.predict, im, bins, sample_size, 0)
+    plt.imshow(im)
+    plt.show()
+    im = spiral(grid, clf.predict, im, bins, sample_size)
+    plt.imshow(im)
+    plt.show()
+    im = alternating(grid, clf.predict, im, bins, sample_size, 0.2)
+    plt.imshow(im)
+    plt.show()
+    im = spiral(grid, clf.predict, im, bins, sample_size)
     plt.imshow(im)
     plt.show()
     # parts = np.array_split(im, 3)
