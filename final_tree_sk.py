@@ -108,16 +108,16 @@ plt.imshow(bins.reshape(3, 3, 3))
 plt.show()
 
 clf = GradientBoostingClassifier(n_estimators=100, learning_rate=.01, max_depth=2, random_state=0, verbose=1)
-sample_size = 32
-X, Y = generate_dataset(im, 32, 10000, bins, p=0.1)
+sample_size = 16
+X, Y = generate_dataset(im, sample_size, 10, bins, p=0.1)
 
-dataset = np.concatenate((X.reshape(Y.shape[0], -1), Y.reshape(-1, 1)), axis=1)
+dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
 
 np.savetxt("dataset.csv", dataset, delimiter=",")
 
 
 print(X.shape, Y.shape)
-clf.fit(X.reshape(Y.shape[0], -1), Y)
+clf.fit(X.reshape(-1, sample_size*3), Y)
 
 
 im = cv2.imread("Leaves_Masked.jpg")
@@ -127,7 +127,7 @@ im = np.flip(im, axis=-1)
 # try and rebuild the image
 for i in range(25):
     for j in range(25):
-        y_hat = clf.predict(sample_pixels(im, 300+i, 300+j, 32).reshape(1, -1))
+        y_hat = clf.predict(sample_pixels(im, 300+i, 300+j, sample_size).reshape(1, -1))
         print(y_hat)
         im[300+i, 300+j, :] = bins[int(y_hat)]
 
