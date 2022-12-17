@@ -6,6 +6,8 @@ from classification_tree import ClassificationTree
 from final_data_processing import get_original_data, quantize_indexs
 import pickle
 
+
+
 # def extract_subarrays(matrix, height, width, step_size_h, step_size_w):
 #     D_h, D_w, _ = matrix.shape
 #     subarrays = []
@@ -30,7 +32,6 @@ def sample_pixels_with_noise(image, x, y, n, colors, p):
     # Calculate the distances from the pixel at (x, y) to all other pixels
     x_coords, y_coords = np.meshgrid(np.arange(image.shape[0]), np.arange(image.shape[1]))
     distances = np.sqrt((x_coords - x)**2 + (y_coords - y)**2)
-    
     # Convert the distances to probabilities
     min_distance = np.min(distances)
     max_distance = np.max(distances)
@@ -86,6 +87,9 @@ def generate_dataset(image, n, size, bins, p=0.1):
     # Generate size number of data points
     for i in range(size):
         x, y = np.random.randint(0, image.shape[0]), np.random.randint(0, image.shape[1])
+        while x < patch_size  or x + patch_size > image.shape[0] or y < patch_size or y + patch_size > image.shape[1]:
+            x, y = np.random.randint(0, image.shape[0]), np.random.randint(0, image.shape[1])
+
         # Sample n pixels from the image using the sample_pixels function
         pixels = np.array(sample_pixels_with_noise(image, x, y, n, bins, p))
         pixels = np.stack(pixels)
@@ -112,8 +116,8 @@ plt.imshow(bins.reshape(3, 3, 3))
 plt.show()
 
 clf = GradientBoostingClassifier(n_estimators=100, learning_rate=.01, max_depth=2, random_state=0, verbose=1)
-sample_size = 16
-X, Y = generate_dataset(im, sample_size, 10, bins, p=0.1)
+sample_size = 32
+X, Y = generate_dataset(im, sample_size, 200000, bins, p=0.25)
 
 dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
 
@@ -129,8 +133,8 @@ im = np.flip(im, axis=-1)
 
 
 # try and rebuild the image
-for i in range(25):
-    for j in range(25):
+for i in range(301):
+    for j in range(301):
         y_hat = clf.predict(sample_pixels(im, 300+i, 300+j, sample_size).reshape(1, -1))
         print(y_hat)
         im[300+i, 300+j, :] = bins[int(y_hat)]
