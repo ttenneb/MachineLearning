@@ -27,15 +27,15 @@ try:
     bins = pickle.load(open("bins.p", "rb"))
 except:
     bins = None
-
+binned_pixels = []
 if bins is None or len(bins) != bin_count:
     print("Defining Bins")
     # must be square
     bins = np.random.randint(high=256, low = 0, size=(bin_count, 3))
-    binned_pixels = [[] for i in range(bin_count)]
     # find nearest bin for each value
 
     for iteration in range(10):
+        binned_pixels = [[] for i in range(bin_count)]
         print("Finding Nearest Bin for Each Value")
         # find distances for each bin for each pixel
         dist = np.sum((bins[:, None, :]-image.reshape(-1, 3))**2, axis=2)
@@ -83,6 +83,16 @@ if show_image:
     plt.show()
 
 pickle.dump(bins, open("bins.p", "wb"))
+
+bin_sizes = {}
+
+
+if len(binned_pixels) != 0:
+    for i, bin in enumerate(binned_pixels):
+        bin_sizes.update({i: len(bin)/len(image.reshape(-1, 3))})
+
+    # print(bin_sizes)
+    pickle.dump(bin_sizes, open("bin_sizes.p", "wb"))
 
 def quantize(image, bins = bins):
     # find nearest bin for each value

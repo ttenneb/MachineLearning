@@ -106,7 +106,6 @@ def spiral(matrix, func, output, bins):
     for element in matrix[0, :, :]:
         x,y = element[0], element[1]
         y_hat = func(sample_pixels(im, x, y, sample_size).reshape(1, -1))
-        # print(y_hat)
         output[x, y] = bins[int(y_hat)]
     spiral(np.rot90(matrix[1:, :, :]), func, output, bins)
     return output
@@ -116,6 +115,8 @@ im = get_original_data()
 
 try:
     bins = pickle.load(open("bins.p", "rb"))
+    bin_sizes = pickle.load(open("bin_sizes.p", "rb"))
+    print(bin_sizes)
 except:
     bins = None
     
@@ -127,7 +128,7 @@ print(bins.shape)
 plt.imshow(bins.reshape(4, 4, 3))
 plt.show()
 
-clf = RandomForestClassifier(n_estimators=250, max_depth=3, random_state=0, n_jobs=1)
+clf = RandomForestClassifier(n_estimators=100, random_state=22, n_jobs=1, criterion="entropy", class_weight=dict(bin_sizes))
 sample_size = 32
 X, Y = generate_dataset(im, sample_size, 20000, bins, p=0.25)
 
