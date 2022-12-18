@@ -18,7 +18,7 @@ del image[4]
 image = np.concatenate(np.stack(image), axis=0)
 
 # number of bins/colors to find
-bin_count = 12
+bin_count = 6
 min_percent = .005
 
 show_image = False
@@ -134,8 +134,9 @@ def get_original_data():
     
     processed_data = []
     for i, image in enumerate(image):
-        for r in range(4):
-            processed_data.append(np.rot90(image))
+        processed_data.append(image)
+        # for r in range(4):
+        #     processed_data.append(np.rot90(image))
            
     image = np.concatenate(np.stack(processed_data), axis=0)
     return image
