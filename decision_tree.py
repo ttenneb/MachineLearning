@@ -219,17 +219,19 @@ class ClassificationTree:
         # group data by class
         class_data = [[] for i in range(unique_count)]
         for i in range(unique_count):
+            print("training tree ", i)
             positives = data[data[:, -1] == i]
             positives[:, -1] = 1
             negatives = data[data[:, -1] != i]
             negatives[:, -1] = -1
             class_data[i] = np.concatenate((positives, negatives), axis=0)
         
+            print("building tree")
             d_tree = build_tree({}, class_data[i], 0, max_depth)
             self.d_trees.append(d_tree)
 
     
-    def predict(self, X, weights, max_depth=4, min_sample_size=10):
+    def predict(self, X, weights, max_depth=2, min_sample_size=100):
         min_sample_size = len(X)/self.train_size * min_sample_size
         
         class_predictions = [[] for i in range(len(self.d_trees))]
