@@ -18,7 +18,7 @@ del image[4]
 image = np.concatenate(np.stack(image), axis=0)
 
 # number of bins/colors to find
-bin_count = 6
+bin_count = 12
 min_percent = .005
 
 show_image = False
@@ -29,7 +29,7 @@ try:
 except:
     bins = None
 binned_pixels = []
-total_pixels = len(image.reshape(-1, 3))/9
+total_pixels = len(image.reshape(-1, 3))*(8/9)
 if bins is None or len(bins) != bin_count:
     print("Defining Bins")
     # must be square
