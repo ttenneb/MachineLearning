@@ -4,7 +4,7 @@ from math import sqrt
 from matplotlib import pyplot as plt
 import pickle
 
-image_original = cv2.imread("Leaves_Masked.jpg")
+image_original = cv2.imread("Wood_Masked.jpg")
 # fix the colors (BGR to RGB)
 image_original = np.flip(image_original, axis=-1)
 
@@ -18,11 +18,11 @@ del image[4]
 image = np.concatenate(np.stack(image), axis=0)
 
 # number of bins/colors to find
-bin_count = 6
+bin_count = 4
 min_percent = .005
 
 show_image = False
-show_palette = False
+show_palette = True
     
 try:
     bins = pickle.load(open("bins.p", "rb"))
@@ -120,7 +120,7 @@ def quantize_indexs(image, bins = bins):
 # print(bins)
 
 def get_original_data():
-    image_original = cv2.imread("Leaves_Masked.jpg")
+    image_original = cv2.imread("Wood_Masked.jpg")
     # fix the colors (BGR to RGB)
     image_original = np.flip(image_original, axis=-1)
 

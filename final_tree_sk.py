@@ -1,4 +1,5 @@
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn import tree
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -6,8 +7,14 @@ from classification_tree import ClassificationTree
 from final_data_processing import get_original_data, quantize_indexs
 import pickle
 
+# get_original_data()
+# clf = ClassificationTree()
+# clf.train()
+# _, acc = clf.predict()
+# print(acc)
+
+# quit()
 patch_size = 4
-sample_size = 16
 # TODO
 def sample_pixels_with_noise(image, x, y, n, colors, p):
     image = image[x-patch_size:x+patch_size, y-patch_size:y+patch_size, :]
@@ -137,11 +144,12 @@ def main():
     #     for j in range(301):
     #         im[300+i, 300+j, :] = bins[np.random.randint(0, len(bins))]
     print(bins.shape)
+    plt.imshow(bins.reshape(1, -1, 3))
+    plt.show()
 
-
-    clf = RandomForestClassifier(n_estimators=10, random_state=11, n_jobs=1, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
-    
-    X, Y = generate_dataset(im, sample_size, 40000, bins, p=0.15)
+    clf = ExtraTreesClassifier(n_estimators=10, random_state=22, n_jobs=1, criterion="entropy", class_weight=dict(bin_sizes), bootstrap=True)
+    sample_size = 32
+    X, Y = generate_dataset(im, sample_size, 100000, bins, p=0.3)
 
     dataset = np.concatenate((X.reshape(-1, sample_size*3), Y.reshape(-1, 1)), axis=1)
 
@@ -176,11 +184,11 @@ def main():
 
     im_org = np.copy(im)
 
-    im_alt = alternating(grid, clf.predict, im, bins, sample_size, 0.0)
+    im_alt = alternating(grid, clf.predict, im, bins, sample_size, 0.1)
     plt.imshow(im_alt)
     plt.show()
-    im_alt = alternating(grid, clf.predict, im_alt, bins, sample_size, 0.0)
-    plt.imshow(im_alt)
+    im_spiral = spiral(grid, clf.predict, im_org, bins, sample_size)
+    plt.imshow(im_spiral)
     plt.show()
    
     # parts = np.array_split(im, 3)
