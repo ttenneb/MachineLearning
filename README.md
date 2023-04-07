@@ -5,7 +5,7 @@ Includes implentations of:
 
 - Decision Tree
 - Extreme Tree
-- Regression: Linear, Log
+- Regression: linear, logistic
 - PCA
 - KNN
 - ANN
