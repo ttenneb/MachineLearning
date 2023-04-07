@@ -11,7 +11,7 @@ Includes implentations of,
 - ANN
 - Autoencoder
 
-Includes Reports on,
+Includes reports on,
 
 - Dimension Reduction.pdf, covering PCA, Autoencoders, and correlation graphs.
 - Classification.pdf, covering decision Trees, logistic regression, and a derivation of SVMs.
