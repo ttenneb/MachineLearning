@@ -13,5 +13,5 @@ Includes implentations of,
 
 Includes reports on,
 
-- Dimension Reduction.pdf, covering PCA, Autoencoders, and correlation graphs.
+- [Dimension Reduction](https://github.com/ttenneb/MachineLearning/blob/main/Dimension%20Reduction.pdf), covering PCA, Autoencoders, and correlation graphs.
 - Classification.pdf, covering decision Trees, logistic regression, and a derivation of SVMs.
